@@ -1,103 +1,255 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useChat } from "ai/react";
+
+export default function Chat() {
+  const { messages, append, isLoading } = useChat();
+  const genres = [
+    { emoji: "🧙", value: "Fantasy" },
+    { emoji: "🕵️", value: "Mystery" },
+    { emoji: "💑", value: "Romance" },
+    { emoji: "🚀", value: "Sci-Fi" },
+  ];
+  const tones = [
+    { emoji: "😊", value: "Happy" },
+    { emoji: "😢", value: "Sad" },
+    { emoji: "😏", value: "Sarcastic" },
+    { emoji: "😂", value: "Funny" },
+  ];
+
+  const [state, setState] = useState({
+    genre: "",
+    tone: "",
+  });
+
+  const [characters, setCharacters] = useState([]);
+  const [newCharacter, setNewCharacter] = useState({
+    name: "",
+    description: "",
+    personality: "",
+  });
+  const [editingIndex, setEditingIndex] = useState(null);
+
+  // Handle genre and tone selection
+  const handleChange = ({
+    target: { name, value },
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    setState({
+      ...state,
+      [name]: value,
+    });
+  };
+
+  // Handle character input changes
+  const handleCharacterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewCharacter({
+      ...newCharacter,
+      [name]: value,
+    });
+  };
+
+  // Add or update character
+  const handleAddCharacter = () => {
+    if (editingIndex !== null) {
+      // Update existing character
+      const updatedCharacters = [...characters];
+      updatedCharacters[editingIndex] = newCharacter;
+      setCharacters(updatedCharacters);
+      setEditingIndex(null);
+    } else {
+      // Add new character
+      setCharacters([...characters, newCharacter]);
+    }
+    setNewCharacter({ name: "", description: "", personality: "" });
+  };
+
+  // Edit character
+  const handleEditCharacter = (index) => {
+    setNewCharacter(characters[index]);
+    setEditingIndex(index);
+  };
+
+  // Delete character
+  const handleDeleteCharacter = (index) => {
+    const updatedCharacters = characters.filter((_, i) => i !== index);
+    setCharacters(updatedCharacters);
+  };
+
+  // Generate the story including characters
+  const handleGenerateStory = () => {
+    const characterInfo = characters
+      .map(
+        (char) =>
+          `${char.name} is a ${char.personality} character who ${char.description}.`
+      )
+      .join(" ");
+
+    const prompt = `Generate a ${state.genre} story in a ${state.tone} tone. ${
+      characters.length > 0
+        ? `Include the following characters: ${characterInfo}`
+        : ""
+    }`;
+
+    append({
+      role: "user",
+      content: prompt,
+    });
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto w-full p-24 flex flex-col">
+      <div className="p4 m-4">
+        <div className="flex flex-col items-center justify-center space-y-8 text-white">
+          {/* Title */}
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold">Story Telling App</h2>
+            <p className="text-zinc-500 dark:text-zinc-400">
+              Customize the story by selecting the genre and tone.
+            </p>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+          {/* Genre Selection */}
+          <div className="space-y-4 bg-opacity-25 bg-gray-700 rounded-lg p-4">
+            <h3 className="text-xl font-semibold">Genre</h3>
+            <div className="flex flex-wrap justify-center">
+              {genres.map(({ value, emoji }) => (
+                <div
+                  key={value}
+                  className="p-4 m-2 bg-opacity-25 bg-gray-600 rounded-lg"
+                >
+                  <input
+                    id={value}
+                    type="radio"
+                    value={value}
+                    name="genre"
+                    onChange={handleChange}
+                  />
+                  <label className="ml-2" htmlFor={value}>
+                    {`${emoji} ${value}`}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tone Selection */}
+          <div className="space-y-4 bg-opacity-25 bg-gray-700 rounded-lg p-4">
+            <h3 className="text-xl font-semibold">Tone</h3>
+            <div className="flex flex-wrap justify-center">
+              {tones.map(({ value, emoji }) => (
+                <div
+                  key={value}
+                  className="p-4 m-2 bg-opacity-25 bg-gray-600 rounded-lg"
+                >
+                  <input
+                    id={value}
+                    type="radio"
+                    name="tone"
+                    value={value}
+                    onChange={handleChange}
+                  />
+                  <label className="ml-2" htmlFor={value}>
+                    {`${emoji} ${value}`}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Character Management */}
+          <div className="space-y-4 bg-opacity-25 bg-gray-700 rounded-lg p-4 w-full max-w-lg">
+            <h3 className="text-xl font-semibold">Add or Edit Characters</h3>
+            <input
+              className="w-full p-2 mb-2 rounded bg-gray-800 text-white"
+              type="text"
+              name="name"
+              value={newCharacter.name}
+              placeholder="Character Name"
+              onChange={handleCharacterChange}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <input
+              className="w-full p-2 mb-2 rounded bg-gray-800 text-white"
+              type="text"
+              name="description"
+              value={newCharacter.description}
+              placeholder="Character Description"
+              onChange={handleCharacterChange}
+            />
+            <input
+              className="w-full p-2 mb-4 rounded bg-gray-800 text-white"
+              type="text"
+              name="personality"
+              value={newCharacter.personality}
+              placeholder="Character Personality"
+              onChange={handleCharacterChange}
+            />
+            <button
+              onClick={handleAddCharacter}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            >
+              {editingIndex !== null ? "Update Character" : "Add Character"}
+            </button>
+          </div>
+
+          {/* Display Characters Table */}
+          {characters.length > 0 && (
+            <div className="w-full max-w-lg bg-opacity-25 bg-gray-700 rounded-lg p-4 space-y-2">
+              <h3 className="text-xl font-semibold">Character List</h3>
+              <ul className="space-y-2">
+                {characters.map((char, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center bg-gray-800 p-2 rounded-lg"
+                  >
+                    <div>
+                      <p className="text-white font-bold">{char.name}</p>
+                      <p className="text-sm text-zinc-400">
+                        {char.personality} | {char.description}
+                      </p>
+                    </div>
+                    <div className="space-x-2">
+                      <button
+                        onClick={() => handleEditCharacter(index)}
+                        className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCharacter(index)}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Generate Story Button */}
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            disabled={isLoading || !state.genre || !state.tone}
+            onClick={handleGenerateStory}
           >
-            Read our docs
-          </a>
+            Generate Story
+          </button>
+
+          {/* Story Output */}
+          <div
+            hidden={
+              messages.length === 0 ||
+              messages[messages.length - 1]?.content.startsWith("Generate")
+            }
+            className="bg-opacity-25 bg-gray-700 rounded-lg p-4"
+          >
+            {messages[messages.length - 1]?.content}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
