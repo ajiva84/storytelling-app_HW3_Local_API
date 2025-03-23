@@ -29,3 +29,4 @@ A dynamic web application that allows users to create unique stories by selectin
 ```bash
 git clone https://github.com/your-username/storytelling-app.git
 cd storytelling-app
+npm run dev
