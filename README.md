@@ -74,3 +74,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Discussion
+Faster for tinyllama. specs: Output generated in 20.07 seconds (30.59 tokens/s, 614 tokens, context 806, seed 1905122696)
+12:23:45-708059 INFO     Loaded "TinyLlama_TinyLlama-1.1B-Chat-v1.0" in 7.80 seconds.                                                                                                                                                                                          
+12:23:45-709492 INFO     LOADER: "Transformers"                                                                                                                                                                                                                                
+12:23:45-710264 INFO     TRUNCATION LENGTH: 2048                                                                                                                                                                                                                               
+12:23:45-711128 INFO     INSTRUCTION TEMPLATE: "Custom (obtained from model metadata)"  
+![tinyllama](/images/tinyllama.png)
+Slower for mistral: Output generated in 653.46 seconds (0.46 tokens/s, 298 tokens, context 1326, seed 1711961390)
+11:58:31-938765 INFO     Loaded "mistralai_Mistral-7B-Instruct-v0.3" in 16.91 seconds.                                                                                                                                                                                         
+11:58:31-939871 INFO     LOADER: "Transformers"                                                                                                                                                                                                                                
+11:58:31-940673 INFO     TRUNCATION LENGTH: 32768                                                                                                                                                                                                                              
+11:58:31-941489 INFO     INSTRUCTION TEMPLATE: "Custom (obtained from model metadata)"   
+![mistral](/images/mistral.png)
