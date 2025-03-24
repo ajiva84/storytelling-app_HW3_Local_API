@@ -240,10 +240,7 @@ export default function Chat() {
 
           {/* Story Output */}
           <div
-            hidden={
-              messages.length === 0 ||
-              messages[messages.length - 1]?.content.startsWith("Generate")
-            }
+            hidden={messages.length === 0}
             className="bg-opacity-25 bg-gray-700 rounded-lg p-4"
           >
             {messages[messages.length - 1]?.content}
